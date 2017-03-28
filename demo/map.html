@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html>
+<style type="text/css">
+ html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+#wrap {
+   width:600px;
+   margin:0 auto;
+}
+#left_col {
+   float:left;
+   width:26%;
+   height: 100%;
+
+}
+#right_col {
+   float:right;
+   width:74%;
+   height: 100%;
+}
+#map {
+    height: 100%;
+}
+#loadbutton
+{
+    width: 100%;
+    background: #666666;
+    height: 10%;
+}
+</style>
+
+<script src="js/FileSaver.js"></script>
+
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script>
+    var map = null
+    var housemarkers = []
+    var stationMarkers = []
+    var feature = "house"
+    var flightPath = null
+    function changeFeature(f)
+    {
+      feature = f;
+    }
+
+    function drawRoute()
+    {
+      if(feature == "house")
+        data = housemarkers.slice();
+      if(feature == "station")
+        data = stationMarkers.slice();
+
+      for (var i = 0; i < data.length; i++) {
+        data[i] = {lat:data[i].getPosition().lat(),lng:data[i].getPosition().lng()}
+      }
+    
+      if(flightPath == null)
+      {
+        flightPath = new google.maps.Polyline({
+            path: data,
+            geodesic: true,
+            strokeColor: '#FF0000',
+            strokeOpacity: 1.0,
+            strokeWeight: 2
+         });
+       
+      } 
+      else
+      {
+        flightPath.setPath(data);
+      }
+      flightPath.setMap(map);
+
+
+    }
+
+    function clearRoute()
+    {
+      if(flightPath != null)
+      {
+        flightPath.setMap(null);
+        flightPath.setPath(null);
+      }
+    }
+
+
+    function exportToTxt(typeoffeature)
+    {
+      data = []
+      if(typeoffeature == "house")
+        data = housemarkers;
+      if(typeoffeature == "station")
+        data = stationMarkers;
+      var txt = "Index, \tLat, \tLNG\n"
+      for(i = 0; i < data.length;i++)
+      {
+        txt += (i +",\t"+ data[i].getPosition().lat() +",\t" + data[i].getPosition().lng() + "\n")
+      }
+     // //var blob = new Blob([txt], {
+      ////    type: "text/plain;charset=utf-8;",
+// });
+      return txt
+      //saveAs(blob, "map_"+ Date.now()+".txt");
+    }  
+
+
+    function loadData(datas)
+    {
+      for(i = 1; i < datas.length; i++)//ignore header
+      {
+         line = datas[i].split("\t");
+         console.log(parseFloat(line[1]), parseFloat(line[2]))
+         var location = {lat: parseFloat(line[1]), lng: parseFloat(line[2])}
+         placeMarker(location);
+      }
+    }
+
+    function placeMarker(location) {
+    var iconBase = 'https://maps.google.com/mapfiles/kml/shapes/';
+          var icons = {
+            house: {
+              icon: iconBase + 'homegardenbusiness.png'
+            },
+            station: {
+              icon: iconBase + 'gas_stations.png'
+            }
+          };
+
+    var marker = new google.maps.Marker({
+        position: location, 
+        map: map,
+        icon: icons[feature].icon,
+        size:new google.maps.Size(42, 68)
+    });
+    if(feature == "house")
+    {
+      housemarkers.push(marker);
+      marker.addListener('dblclick', function() {
+        marker.setMap(null);
+        var index = housemarkers.indexOf(marker);
+        console.log(index);
+        if (index > -1) {
+           housemarkers.splice(index, 1);
+        }
+      });
+    }
+    if(feature == "station")
+    {
+      stationMarkers.push(marker);
+      marker.addListener('dblclick', function() {
+        marker.setMap(null);
+        var index = stationMarkers.indexOf(marker);
+        console.log(index);
+        if (index > -1) {
+           stationMarkers.splice(index, 1);
+        }
+      });
+    }
+    
+    
+}
+
+    </script>
+  <head>
+
+    <!-- This stylesheet contains specific styles for displaying the map
+         on this page. Replace it with your own styles as described in the
+         documentation:
+         https://developers.google.com/maps/documentation/javascript/tutorial -->
+   
+
+
+  </head>
+  <body>
+      click to add marker<br/>double click the marker to delete it
+      <div id="map"></div>
+      <script>
+    //var housemarkers = []
+function initMap() {
+  var myLatlng = {lat: 1.3553790, lng: 103.8677440};
+
+  map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 12,
+    center: myLatlng
+  });
+  map.setOptions({draggableCursor:'crosshair'});
+  
+
+  google.maps.event.addListener(map, 'click', function(event) {
+     placeMarker(event.latLng);
+  });
+
+
+
+
+
+
+  
+}
+
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_HERE&callback=initMap" async defer>
+    </script>
+    <!--<</div>-->
+    
+  </body>
+</html>
