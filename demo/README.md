@@ -11,6 +11,9 @@ go to this link to apply for your key and put in in  'map.html', search map.html
 * create file
 * save file
 
+## Advantage 
+* easy debug. Html file and python files are seperated, you can debug you webpage using Chrome console first, and then debug in your python code.
+
 ## How python interact with webview
 1. create web view 
 ```python
@@ -25,3 +28,4 @@ frame = self.view.page().mainFrame()
 script = "loadData(%s)"%lines
 returnvalue = frame.evaluateJavaScript(script)
 ```
+
